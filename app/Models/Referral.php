@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Referral extends Model
 {
@@ -31,6 +32,11 @@ class Referral extends Model
     public function referredMaster(): BelongsTo
     {
         return $this->belongsTo(Master::class, 'referred_master_id');
+    }
+
+    public function referralEarnings(): HasMany
+    {
+        return $this->hasMany(ReferralEarning::class);
     }
 
     public function scopeActive(Builder $query): Builder
