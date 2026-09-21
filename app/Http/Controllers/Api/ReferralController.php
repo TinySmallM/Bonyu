@@ -71,4 +71,36 @@ class ReferralController extends Controller
             ]
         ], 201);
     }
+
+    public function my(Request $request): JsonResponse
+    {
+        $currentMaster = $request->attributes->get('current_master');
+
+        if (!$currentMaster) {
+            return response()->json([
+                'error' => 'X-Master-Id header is required or invalid'
+            ], 400);
+        }
+
+        // Получаем всех рефералов текущего мастера
+        $referrals = Referral::with('referredMaster')
+            ->where('referrer_master_id', $currentMaster->id)
+            ->get()
+            ->map(function ($referral) {
+                return [
+                    'id' => $referral->referredMaster->id,
+                    'name' => $referral->referredMaster->name,
+                    'referral_code' => $referral->referredMaster->referral_code,
+                    'attached_at' => $referral->created_at->toDateTimeString(),
+                    'status' => $referral->status,
+                    'is_rewarded' => $referral->status === Referral::STATUS_REWARDED,
+                    'total_earned' => $referral->referralEarnings()->sum('amount'),
+                ];
+            });
+
+        return response()->json([
+            'data' => $referrals,
+            'total' => $referrals->count(),
+        ]);
+    }
 }

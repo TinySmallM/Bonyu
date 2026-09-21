@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/ping', fn () => ['ok' => true]);
 Route::post('/referrals/attach', [ReferralController::class, 'attach']);
+Route::get('/referrals/my', [ReferralController::class, 'my']);
 
 // TODO: POST /api/referrals/attach
 // TODO: GET  /api/referrals/my
