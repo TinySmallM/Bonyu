@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Master;
 use App\Models\Referral;
+use App\Models\ReferralEarning;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -101,6 +102,34 @@ class ReferralController extends Controller
         return response()->json([
             'data' => $referrals,
             'total' => $referrals->count(),
+        ]);
+    }
+
+    public function earnings(Request $request): JsonResponse
+    {
+        $currentMaster = $request->attributes->get('current_master');
+
+        if (!$currentMaster) {
+            return response()->json([
+                'error' => 'X-Master-Id header is required or invalid'
+            ], 400);
+        }
+
+        // Получаем все earnings текущего мастера как реферера
+        $earnings = ReferralEarning::where('referrer_master_id', $currentMaster->id);
+
+        $totalAccrued = $earnings->sum('amount');
+        $pending = (clone $earnings)->where('status', 'pending')->sum('amount');
+        $paid = (clone $earnings)->where('status', 'paid')->sum('amount');
+        $rewardedReferralsCount = Referral::where('referrer_master_id', $currentMaster->id)
+            ->where('status', Referral::STATUS_REWARDED)
+            ->count();
+
+        return response()->json([
+            'total_accrued' => $totalAccrued,
+            'pending' => $pending,
+            'paid' => $paid,
+            'rewarded_referrals_count' => $rewardedReferralsCount,
         ]);
     }
 }
